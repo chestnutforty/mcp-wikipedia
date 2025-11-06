@@ -1,0 +1,21 @@
+[project]
+name = "mcp-wikipedia"
+version = "0.1.0"
+description = "MCP server for Wikipedia search with time-travel capability"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp",
+    "fastapi>=0.116.1",
+    "uvicorn>=0.35.0",
+    "httpx",
+    "wikitextparser>=0.56.4",
+    "pandas",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["wikipedia*"]
