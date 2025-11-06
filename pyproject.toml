@@ -3,7 +3,7 @@ name = "mcp-wikipedia"
 version = "0.1.0"
 description = "MCP server for Wikipedia search with time-travel capability"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "mcp[cli]",
     "fastapi>=0.116.1",
