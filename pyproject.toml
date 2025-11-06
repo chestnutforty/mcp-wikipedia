@@ -5,7 +5,7 @@ description = "MCP server for Wikipedia search with time-travel capability"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "mcp",
+    "mcp[cli]",
     "fastapi>=0.116.1",
     "uvicorn>=0.35.0",
     "httpx",
