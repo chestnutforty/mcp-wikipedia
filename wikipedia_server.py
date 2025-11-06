@@ -10,7 +10,6 @@ Use this tool to search Wikipedia articles as they existed at a specific point i
 This is useful for historical research, fact-checking, and getting information from a specific date.
 The tool retrieves article content from Wikipedia's revision history before the specified end_date.
     """.strip(),
-    port=8003
 )
 
 
