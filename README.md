@@ -79,6 +79,51 @@ result = await search_wikipedia(
 - wikitextparser>=0.56.4
 - pandas
 
+## Testing
+
+### Setup
+
+Install test dependencies:
+```bash
+uv pip install -e ".[test]"
+```
+
+### Running Tests
+
+Run all tests:
+```bash
+pytest
+```
+
+Run with verbose output:
+```bash
+pytest -v
+```
+
+Run specific test file:
+```bash
+pytest tests/test_wikipedia_server.py
+```
+
+Run specific test:
+```bash
+pytest tests/test_wikipedia_server.py::test_search_basic -v
+```
+
+### Test Coverage
+
+The test suite covers:
+- **Basic search**: Standard Wikipedia searches with time constraints
+- **Historical queries**: Searches with older dates to test time-travel functionality
+- **Multiple results**: Testing different limit values
+- **Multi-language**: Testing non-English Wikipedia searches
+- **Error handling**: Invalid dates, malformed input, missing results
+- **Edge cases**: Very old dates, special characters, numerical queries
+- **Response format**: Timestamp inclusion, content truncation for long articles
+- **Default parameters**: Testing with and without optional parameters
+
+**Note**: Tests make real calls to Wikipedia's API. No API keys required, but tests depend on network connectivity and Wikipedia API availability.
+
 ## License
 
 See the main gpt-oss repository for license information.

@@ -1,5 +1,6 @@
 import os
 import asyncio
+import logging
 import pandas as pd
 import wikitextparser as wtp
 
@@ -7,15 +8,16 @@ from datetime import datetime, timezone
 from httpx import AsyncClient
 from dataclasses import dataclass, asdict
 
+
 @dataclass
 class WikiQueryRequest:
-    srsearch: str # search query
+    srsearch: str  # search query
     srlimit: int = 2
     srnamespace: int = 0
-    action: str = 'query'
-    format: str = 'json'
+    action: str = "query"
+    format: str = "json"
     formatversion: int = 2
-    list: str = 'search'
+    list: str = "search"
     maxlag: int = 5
     redirects: int = 1
 
@@ -23,16 +25,17 @@ class WikiQueryRequest:
 @dataclass
 class WikiRevisionRequest:
     pageids: int
-    rvstart: str # iso
+    rvstart: str  # iso
     action: str = "query"
     format: str = "json"
     formatversion: int = 2
     prop: str = "revisions"
     rvlimit: int = 1
-    rvdir: str = 'older'
+    rvdir: str = "older"
     rvprop: str = "ids|timestamp|content"
     rvslots: str = "main"
     maxlag: int = 5
+
 
 @dataclass
 class WikiRevisionResponse:
@@ -42,25 +45,24 @@ class WikiRevisionResponse:
     timestamp: str
     content: str
 
+
 class Wikipedia:
     def __init__(
         self,
-        lang: str = 'en',
+        lang: str = "en",
         limit: int = 2,
         save_dir: str = None,
         remove_wikitext: bool = True,
         debug: bool = False,
-        access_token: str = os.getenv("WIKIPEDIA_ACCESS_TOKEN")
     ):
         self.lang = lang
         self.limit = limit
         self.remove_wikitext = remove_wikitext
-        self.api_endpoint = f'https://{lang}.wikipedia.org/w/api.php'
+        self.api_endpoint = f"https://{lang}.wikipedia.org/w/api.php"
         self.save_dir = save_dir
-        self.access_token = access_token
 
         if self.save_dir is None:
-            self.save_dir = os.path.join('data', 'wikipedia_revisions')
+            self.save_dir = os.path.join("data", "wikipedia_revisions")
 
     async def search(self, query: str, end_date: datetime):
         async with AsyncClient() as client:
@@ -70,34 +72,27 @@ class Wikipedia:
         return revisions
 
     async def _get_wiki_search(self, query, client):
-        headers = {}
-        if self.access_token:
-            headers["Authorization"] = f"Bearer {self.access_token}"
-
         r = await client.get(
             self.api_endpoint,
             params=self._prepare_search_payload(query),
-            headers=headers
+            headers={"User-Agent": "chestnut-forty"},
         )
 
         r.raise_for_status()
-        page_ids = [hit["pageid"] for hit in r.json().get("query", {}).get("search", [])]
+        page_ids = [
+            hit["pageid"] for hit in r.json().get("query", {}).get("search", [])
+        ]
         return page_ids
 
     async def _get_wiki_revisions(self, page_ids, end_date, client):
-        headers = {}
-        if self.access_token:
-            headers["Authorization"] = f"Bearer {self.access_token}"
-
         all_pages = []
         for page in page_ids:
             r = await client.get(
                 self.api_endpoint,
                 params=self._prepare_revision_payload(
-                    page,
-                    self._format_timestamp(end_date)
+                    page, self._format_timestamp(end_date)
                 ),
-                headers=headers
+                headers={"User-Agent": "chestnut-forty"},
             )
             r.raise_for_status()
             pages = r.json().get("query", {}).get("pages", [])
@@ -105,11 +100,14 @@ class Wikipedia:
             if not pages:
                 continue
             p = pages[0]
+            # logger.debug(f'pages looks like - {p.keys()}')
 
             revs = p.get("revisions", [])
             if not revs:
                 continue
             rev = revs[0]
+            # logger.debug(f'revision looks like - {rev.keys()}')
+            # logger.debug(f'slots looks like {rev.get("slots").get("main").get("content")}')
             wikitext = (rev.get("slots") or {}).get("main", {}).get("content")
 
             # Strip leading and trailing whitespace
@@ -119,14 +117,17 @@ class Wikipedia:
             all_pages.append(
                 asdict(
                     WikiRevisionResponse(
-                        pageid=p['pageid'],
-                        title=p['title'],
-                        oldid=rev['revid'],
-                        timestamp=rev['timestamp'],
-                        content=wtp.remove_markup(wikitext).strip() if self.remove_wikitext else wikitext
+                        pageid=p["pageid"],
+                        title=p["title"],
+                        oldid=rev["revid"],
+                        timestamp=rev["timestamp"],
+                        content=wtp.remove_markup(wikitext).strip()
+                        if self.remove_wikitext
+                        else wikitext,
                     )
                 )
             )
+        # logger.debug(f'all pages looks like {all_pages}')
 
         return all_pages
 
@@ -144,7 +145,7 @@ class Wikipedia:
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)  # assume UTC if naive
         else:
-            dt = dt.astimezone(timezone.utc)      # convert to UTC
+            dt = dt.astimezone(timezone.utc)  # convert to UTC
         return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def save_results(self):
@@ -153,6 +154,6 @@ class Wikipedia:
 
 
 if __name__ == "__main__":
-    w = Wikipedia('ru')
-    out = asyncio.run(w.search('деньги', datetime(2023,1,1)))
+    w = Wikipedia("ru")
+    out = asyncio.run(w.search("деньги", datetime(2023, 1, 1)))
     print(out)
