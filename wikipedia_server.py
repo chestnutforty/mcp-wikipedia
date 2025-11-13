@@ -25,7 +25,7 @@ async def search_wikipedia(
     query: Annotated[str, "Search query string"],
     end_date: Annotated[str, "ISO format date (YYYY-MM-DD) - retrieve articles as they existed before this date"],
     lang: Annotated[str, "Two letter language code"] = 'en',
-    limit: Annotated[int, "Maximum number of articles to retrieve"] = 2
+    # limit: Annotated[int, "Maximum number of articles to retrieve"] = 1
 ) -> str:
     """
     Search Wikipedia articles as they existed at a specific point in time.
@@ -44,7 +44,7 @@ async def search_wikipedia(
         end_date_dt = datetime.fromisoformat(end_date)
 
         # Initialize Wikipedia search
-        wiki = Wikipedia(lang=lang, limit=limit)
+        wiki = Wikipedia(lang=lang, limit=1)
 
         # Perform search
         results = await wiki.search(query, end_date_dt)
