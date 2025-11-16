@@ -1,5 +1,5 @@
 from typing import Annotated
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from wikipedia.search import Wikipedia
 from datetime import datetime
 
