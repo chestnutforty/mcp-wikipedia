@@ -19,11 +19,12 @@ The tool retrieves article content from Wikipedia's revision history before the 
     description="""
 Search Wikipedia and retrieve articles as they existed before a specific date.
 Useful for historical timelines, biographical data, scientific concepts, reference statistics, and base rates.
-    """
+    """,
+    exclude_args=["cutoff_date"]
 )
 async def search_wikipedia(
     query: Annotated[str, "Search query string"],
-    end_date: Annotated[str, "ISO format date (YYYY-MM-DD) - retrieve articles as they existed before this date"],
+    cutoff_date: Annotated[str, "ISO format date (YYYY-MM-DD) - retrieve articles as they existed before this date"] = datetime.now().strftime("%Y-%m-%d"),
     lang: Annotated[str, "Two letter language code"] = 'en',
     # limit: Annotated[int, "Maximum number of articles to retrieve"] = 1
 ) -> str:
@@ -32,7 +33,7 @@ async def search_wikipedia(
 
     Args:
         query: Search query string
-        end_date: ISO format date (YYYY-MM-DD) - retrieve articles as they existed before this date
+        cutoff_date: ISO format date (YYYY-MM-DD) - retrieve articles as they existed before this date
         lang: Language code (default: 'en')
         limit: Maximum number of articles to retrieve (default: 2)
 
@@ -41,7 +42,7 @@ async def search_wikipedia(
     """
     try:
         # Parse end_date to datetime
-        end_date_dt = datetime.fromisoformat(end_date)
+        end_date_dt = datetime.fromisoformat(cutoff_date)
 
         # Initialize Wikipedia search
         wiki = Wikipedia(lang=lang, limit=1)
@@ -65,13 +66,13 @@ async def search_wikipedia(
 
             formatted_results.append(
                 f"=== {title} ===\n"
-                f"Last revision before {end_date}: {timestamp}\n\n"
+                f"Last revision before {cutoff_date}: {timestamp}\n\n"
                 f"{content}\n"
             )
 
         return "\n\n".join(formatted_results)
 
     except ValueError as e:
-        return f"Error parsing date '{end_date}'. Please use ISO format (YYYY-MM-DD): {str(e)}"
+        return f"Error parsing date '{cutoff_date}'. Please use ISO format (YYYY-MM-DD): {str(e)}"
     except Exception as e:
         return f"Error searching Wikipedia: {str(e)}"
